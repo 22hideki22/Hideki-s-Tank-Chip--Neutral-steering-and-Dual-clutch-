@@ -1,0 +1,82 @@
+@name hideki's Tank Chip (Neutral Steering and Dual Clutch)
+@inputs W A S D Space Active Engine:entity
+@outputs Gear#Main Gearbox
+@outputs TGearL TGearR LeftBrake RightBrake LeftClutch RightClutch LatchL LatchR Brake#Left and Right transfer case Brake
+@persist MaxRPM MinRPM RPM Reverse Transaxial_Dual_Clutch RLBrakeForce BrakeForce
+
+############################# Made by hideki ############################
+########################## STEAM_0:0:138371513 ##########################
+
+interval(100)
+
+if(first()|dupefinished()){
+
+    #####Configuring#####
+
+    MaxRPM = 3500 #Your engine max RPM subtracted by 300, this is what makes the gear change.
+    MinRPM = 1200 #The RPM that will make gear go down.
+
+    Transaxial_Dual_Clutch = 0 #If your tank have transfer-cases(neutral steering) disable this, if Transaxial Enable this, 0-1
+    RLBrakeForce = 3 #Transaxial Dual Clutch Left and Right Brakes force
+    BrakeForce = 3 #Transfer cases Force 
+
+    Reverse = 9 #Your Gearbox Reverse gear (Last gear, Negative gear)
+
+    #####Dont touch####
+    Gear = 1
+    LatchR = 1
+    LatchL = 1    
+
+    }
+
+############################# Open Stuff to mess with if you know E2 #############################
+
+if(W+A+S+D){Engine:acfThrottle(100)} #Throttle
+else{Engine:acfThrottle(0)}
+
+if(Space|Active==0){LatchR=1 LatchL = 1 LeftBrake=RLBrakeForce*2 RightBrake=RLBrakeForce*2 Brake=BrakeForce} #Brakes NOTE: Remove the multiply by 2 if brake too strong
+else{LatchR=0 LatchL=0 Brake=0 LeftBrake=0 RightBrake=0}
+
+
+if(Transaxial_Dual_Clutch==1){
+
+    if(D){LeftClutch=1 LeftBrake=RLBrakeForce} #LatchL = 1)
+    elseif(A){RightClutch=1 RightBrake=RLBrakeForce} #LatchR=1)
+    else{    
+    
+        RightClutch=0 
+        LeftClutch=0
+        }
+}
+else{
+
+    if(A){TGearL=2,Gear = 2}
+    elseif(D){TGearR=2,Gear = 2}
+    else{    
+
+        Gear = Gear
+        TGearL=1 
+        TGearR=1
+        }
+}
+
+
+RPM = Engine:acfRPM()
+
+if(RPM > MaxRPM & W==1 & Gear == 1){Gear++} #Delete "#" in line 72, 73 or 74 if you want to make it shiftup more gears for your gearbox.
+elseif(RPM > MaxRPM & W==1 & Gear == 2){Gear++}
+elseif(RPM > MaxRPM & W==1 & Gear == 3){Gear++}
+elseif(RPM > MaxRPM & W==1 & Gear == 4){Gear++} #MaxGears 6
+#elseif(RPM > MaxRPM & W==1 & Gear == 5){Gear++} #This goes with MaxGears 8 and 9
+#elseif(RPM > MaxRPM & W==1 & Gear == 6){Gear++} #MaxGears 8
+#elseif(RPM > MaxRPM & W==1 & Gear == 7){Gear++} #MaxGears 9
+
+if(RPM < MinRPM & Gear == 7){Gear--} #Dont change anything here and down.
+elseif(RPM < MinRPM & Gear == 6){Gear--}
+elseif(RPM < MinRPM & Gear == 5){Gear--}
+elseif(RPM < MinRPM & Gear == 4){Gear--}
+elseif(RPM < MinRPM & Gear == 3){Gear--}
+elseif(RPM < MinRPM & Gear == 2){Gear--}
+
+if(S==1){Gear = Reverse}
+if(W==1 & Gear == Reverse){Gear = 1}
